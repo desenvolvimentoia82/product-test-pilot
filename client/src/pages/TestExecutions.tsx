@@ -13,6 +13,30 @@ import { useTestPlans } from '@/hooks/useTestPlans';
 import { useTestCases } from '@/hooks/useTestCases';
 import { TestExecutionDialog } from '@/components/test-executions/TestExecutionDialog';
 
+// Component to display test case title
+const TestCaseTitle = ({ testCaseId }: { testCaseId: string }) => {
+  const [title, setTitle] = useState<string>('');
+  
+  useEffect(() => {
+    const fetchTestCase = async () => {
+      try {
+        const response = await fetch(`/api/test-cases`);
+        if (response.ok) {
+          const testCases = await response.json();
+          const testCase = testCases.find((tc: any) => tc.id === testCaseId);
+          setTitle(testCase?.title || `Caso #${testCaseId.slice(0, 8)}`);
+        }
+      } catch (error) {
+        setTitle(`Caso #${testCaseId.slice(0, 8)}`);
+      }
+    };
+    
+    fetchTestCase();
+  }, [testCaseId]);
+  
+  return <div className="font-medium">{title}</div>;
+};
+
 const getStatusIcon = (status: string) => {
   switch (status) {
     case 'passed':
@@ -273,7 +297,7 @@ export const TestExecutions = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="font-medium">Caso #{execution.test_case_id}</div>
+                          <TestCaseTitle testCaseId={execution.test_case_id} />
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">

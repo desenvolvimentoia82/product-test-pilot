@@ -50,6 +50,7 @@ export const testSuites = pgTable("test_suites", {
   product_id: uuid("product_id").references(() => products.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   description: text("description"),
+  revision: integer("revision").default(1),
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
@@ -130,6 +131,7 @@ export const insertTestSuiteSchema = createInsertSchema(testSuites).pick({
   product_id: true,
   name: true,
   description: true,
+  revision: true,
 });
 
 export const insertTestCaseSchema = createInsertSchema(testCases).pick({

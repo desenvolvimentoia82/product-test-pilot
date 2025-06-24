@@ -36,6 +36,10 @@ A comprehensive test management system for organizing products, releases, and te
   - Fixed test executions page routing and functionality
   - Improved test execution dialog to fetch real test cases
   - Updated execution URL from /executions to /test-executions
+  - Fixed test execution display to show test case titles instead of IDs
+  - Added test cases view dialog for managing cases within suites
+  - Implemented revision control system for test suites
+  - Updated dashboard with real database statistics
 
 ## User Preferences
 *To be updated based on user interactions*

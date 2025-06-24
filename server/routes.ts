@@ -193,7 +193,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertTestSuiteSchema.parse(req.body);
       const [updatedTestSuite] = await db
         .update(testSuites)
-        .set({ ...validatedData, updated_at: new Date() })
+        .set({ 
+          ...validatedData, 
+          updated_at: new Date(),
+          revision: validatedData.revision || 1
+        })
         .where(eq(testSuites.id, id))
         .returning();
       

@@ -4,12 +4,13 @@ import { ProductSelector } from '@/components/products/ProductSelector';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, TestTube, Clock, User, History, Edit, Trash2, PlayCircle } from 'lucide-react';
+import { Plus, TestTube, Clock, User, History, Edit, Trash2, PlayCircle, Eye } from 'lucide-react';
 import { useProduct } from '@/contexts/ProductContext';
 import { useTestSuites } from '@/hooks/useTestSuites';
 import { useTestCases } from '@/hooks/useTestCases';
 import { TestSuiteDialog } from '@/components/test-suites/TestSuiteDialog';
 import { TestCaseDialog } from '@/components/test-suites/TestCaseDialog';
+import { TestCasesViewDialog } from '@/components/test-suites/TestCasesViewDialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export const TestSuites = () => {
@@ -241,6 +242,15 @@ const TestSuiteCard = ({ suite, onUpdate, onDelete, formatDate }: {
                   }
                 }}
               />
+              <TestCasesViewDialog 
+                suite={suite}
+                trigger={
+                  <Button variant="outline" size="sm">
+                    <TestTube className="h-4 w-4 mr-1" />
+                    Ver Casos
+                  </Button>
+                }
+              />
               <Button variant="outline" size="sm">
                 <PlayCircle className="h-4 w-4 mr-1" />
                 Executar
@@ -250,8 +260,12 @@ const TestSuiteCard = ({ suite, onUpdate, onDelete, formatDate }: {
         </div>
         
         <div className="mt-4 pt-4 border-t">
-          <div className="text-sm text-muted-foreground">
-            Criado em {formatDate(suite.created_at)}
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <div>Criado em {formatDate(suite.created_at)}</div>
+            <div className="flex items-center space-x-2">
+              <History className="h-4 w-4" />
+              <span>Revisão {suite.revision || 1}</span>
+            </div>
           </div>
         </div>
       </CardContent>

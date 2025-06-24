@@ -62,12 +62,19 @@ export const useTestSuites = (productId?: string) => {
 
   const updateTestSuite = async (id: string, testSuiteData: Partial<Omit<TestSuite, 'id' | 'created_at' | 'updated_at'>>) => {
     try {
+      // Get current suite to increment revision
+      const currentSuite = testSuites.find(suite => suite.id === id);
+      const currentRevision = currentSuite?.revision || 1;
+      
       const response = await fetch(`/api/test-suites/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(testSuiteData),
+        body: JSON.stringify({
+          ...testSuiteData,
+          revision: currentRevision + 1,
+        }),
       });
 
       if (!response.ok) throw new Error('Failed to update test suite');
@@ -79,7 +86,7 @@ export const useTestSuites = (productId?: string) => {
       
       toast({
         title: "Sucesso",
-        description: "Suite de teste atualizada com sucesso.",
+        description: `Suite atualizada com sucesso. Revisão ${data.revision}`,
       });
       
       return data;
