@@ -18,7 +18,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 export const TestSuites = () => {
   const { selectedProduct } = useProduct();
-  const { testSuites, loading, includeArchived, setIncludeArchived, createTestSuite, updateTestSuite, archiveTestSuite } = useTestSuites(selectedProduct?.id, false);
+  const { testSuites, loading, includeArchived, setIncludeArchived, createTestSuite, updateTestSuite, archiveTestSuite } = useTestSuites(selectedProduct?.id);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {

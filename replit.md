@@ -25,6 +25,11 @@ A comprehensive test management system for organizing products, releases, and te
 - `product_members`: User roles per product (ready for future auth)
 
 ## Recent Changes
+- **2024-06-24**: Database cleanup completed - all test suites deleted from database
+  - Removed all test_suites records (0 remaining)
+  - Removed all test_cases records (0 remaining) 
+  - Removed all test_suite_versions records (0 remaining)
+  - Fixed JavaScript error in TestSuites component with setIncludeArchived state management
 - **2024-12-24**: Successfully migrated from Supabase to PostgreSQL
   - Replaced Supabase client with server-side API endpoints
   - Implemented Drizzle ORM for type-safe database operations

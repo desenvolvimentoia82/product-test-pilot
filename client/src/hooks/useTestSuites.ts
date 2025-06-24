@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { TestSuite } from '@/types/database';
 
-export const useTestSuites = (productId?: string, includeArchived: boolean = false) => {
+export const useTestSuites = (productId?: string, initialIncludeArchived: boolean = false) => {
   const [testSuites, setTestSuites] = useState<TestSuite[]>([]);
   const [loading, setLoading] = useState(true);
+  const [includeArchived, setIncludeArchived] = useState(initialIncludeArchived);
   const { toast } = useToast();
 
   const fetchTestSuites = async () => {
