@@ -75,7 +75,7 @@ export const TestCaseDialog = ({ trigger, testCase, onSave }: TestCaseDialogProp
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Baixa</SelectItem>
-                  <SelectItem value="medium">Média</SelectItem>
+                  <SelectItem value="medium">Média</SelectItem>Item>
                   <SelectItem value="high">Alta</SelectItem>
                   <SelectItem value="critical">Crítica</SelectItem>
                 </SelectContent>

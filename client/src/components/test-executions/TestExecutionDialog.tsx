@@ -108,9 +108,9 @@ export const TestExecutionDialog = ({ trigger, execution, onSave, planId }: Test
               </SelectTrigger>
               <SelectContent>
                 {loading ? (
-                  <SelectItem value="" disabled>Carregando casos de teste...</SelectItem>
+                  <SelectItem value="loading" disabled>Carregando casos de teste...</SelectItem>
                 ) : testCases.length === 0 ? (
-                  <SelectItem value="" disabled>Nenhum caso de teste encontrado</SelectItem>
+                  <SelectItem value="no-cases" disabled>Nenhum caso de teste encontrado</SelectItem>
                 ) : (
                   testCases.map((testCase) => (
                     <SelectItem key={testCase.id} value={testCase.id}>
