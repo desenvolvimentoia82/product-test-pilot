@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,26 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Test Management System Custom Colors
+				test: {
+					passed: 'hsl(142, 76%, 36%)',
+					failed: 'hsl(0, 84%, 60%)',
+					pending: 'hsl(45, 93%, 47%)',
+					blocked: 'hsl(220, 14%, 56%)',
+					skipped: 'hsl(210, 40%, 78%)'
+				},
+				priority: {
+					low: 'hsl(142, 76%, 36%)',
+					medium: 'hsl(45, 93%, 47%)',
+					high: 'hsl(0, 84%, 60%)'
+				},
+				release: {
+					development: 'hsl(210, 40%, 78%)',
+					ready: 'hsl(45, 93%, 47%)',
+					testing: 'hsl(220, 91%, 59%)',
+					approved: 'hsl(142, 76%, 36%)',
+					released: 'hsl(220, 14%, 56%)'
 				}
 			},
 			borderRadius: {
@@ -84,11 +105,22 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					from: {
+						opacity: '0',
+						transform: 'translateY(10px)'
+					},
+					to: {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.3s ease-out'
 			}
 		}
 	},
