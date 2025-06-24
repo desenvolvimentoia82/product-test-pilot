@@ -55,6 +55,19 @@ export const testSuites = pgTable("test_suites", {
   updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
+// Test suite version history table
+export const testSuiteVersions = pgTable("test_suite_versions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  test_suite_id: uuid("test_suite_id").references(() => testSuites.id, { onDelete: "cascade" }),
+  revision: integer("revision").notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  changes: text("changes"), // JSON string of what changed
+  change_summary: text("change_summary"), // Human readable summary
+  changed_by: text("changed_by").default("Demo User"),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
 // Test cases table
 export const testCases = pgTable("test_cases", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -134,6 +147,16 @@ export const insertTestSuiteSchema = createInsertSchema(testSuites).pick({
   revision: true,
 });
 
+export const insertTestSuiteVersionSchema = createInsertSchema(testSuiteVersions).pick({
+  test_suite_id: true,
+  revision: true,
+  name: true,
+  description: true,
+  changes: true,
+  change_summary: true,
+  changed_by: true,
+});
+
 export const insertTestCaseSchema = createInsertSchema(testCases).pick({
   test_suite_id: true,
   title: true,
@@ -176,6 +199,8 @@ export type Release = typeof releases.$inferSelect;
 export type InsertRelease = z.infer<typeof insertReleaseSchema>;
 export type TestSuite = typeof testSuites.$inferSelect;
 export type InsertTestSuite = z.infer<typeof insertTestSuiteSchema>;
+export type TestSuiteVersion = typeof testSuiteVersions.$inferSelect;
+export type InsertTestSuiteVersion = z.infer<typeof insertTestSuiteVersionSchema>;
 export type TestCase = typeof testCases.$inferSelect;
 export type InsertTestCase = z.infer<typeof insertTestCaseSchema>;
 export type TestPlan = typeof testPlans.$inferSelect;

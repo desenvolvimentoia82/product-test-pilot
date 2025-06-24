@@ -60,7 +60,7 @@ export const useTestSuites = (productId?: string) => {
     }
   };
 
-  const updateTestSuite = async (id: string, testSuiteData: Partial<Omit<TestSuite, 'id' | 'created_at' | 'updated_at'>>) => {
+  const updateTestSuite = async (id: string, testSuiteData: Partial<Omit<TestSuite, 'id' | 'created_at' | 'updated_at'>> & { change_summary?: string }) => {
     try {
       // Get current suite to increment revision
       const currentSuite = testSuites.find(suite => suite.id === id);
@@ -71,10 +71,7 @@ export const useTestSuites = (productId?: string) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...testSuiteData,
-          revision: currentRevision + 1,
-        }),
+        body: JSON.stringify(testSuiteData),
       });
 
       if (!response.ok) throw new Error('Failed to update test suite');

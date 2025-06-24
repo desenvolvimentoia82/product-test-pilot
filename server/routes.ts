@@ -4,7 +4,8 @@ import { db } from "./db";
 import { 
   products, 
   releases, 
-  testSuites, 
+  testSuites,
+  testSuiteVersions,
   testCases,
   testPlans,
   testPlanSuites,
@@ -12,11 +13,13 @@ import {
   insertProductSchema, 
   insertReleaseSchema, 
   insertTestSuiteSchema,
+  insertTestSuiteVersionSchema,
   insertTestCaseSchema,
   insertTestPlanSchema,
   insertTestExecutionSchema
 } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
+import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Products routes
@@ -190,25 +193,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/test-suites/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const validatedData = insertTestSuiteSchema.parse(req.body);
+      const { change_summary, ...validatedData } = insertTestSuiteSchema.extend({
+        change_summary: z.string().optional()
+      }).parse(req.body);
+      
+      // Get current test suite for comparison
+      const [currentSuite] = await db.select().from(testSuites).where(eq(testSuites.id, id));
+      if (!currentSuite) {
+        return res.status(404).json({ error: "Test suite not found" });
+      }
+      
+      // Calculate changes
+      const changes = {
+        name: currentSuite.name !== validatedData.name ? { from: currentSuite.name, to: validatedData.name } : null,
+        description: currentSuite.description !== validatedData.description ? { from: currentSuite.description, to: validatedData.description } : null,
+      };
+      
+      const hasChanges = Object.values(changes).some(change => change !== null);
+      
+      if (hasChanges) {
+        // Create version history entry
+        await db.insert(testSuiteVersions).values({
+          test_suite_id: id,
+          revision: currentSuite.revision,
+          name: currentSuite.name,
+          description: currentSuite.description,
+          changes: JSON.stringify(changes),
+          change_summary: change_summary || "Atualização automática",
+          changed_by: "Demo User"
+        });
+      }
+      
       const [updatedTestSuite] = await db
         .update(testSuites)
         .set({ 
           ...validatedData, 
           updated_at: new Date(),
-          revision: validatedData.revision || 1
+          revision: hasChanges ? (currentSuite.revision + 1) : currentSuite.revision
         })
         .where(eq(testSuites.id, id))
         .returning();
-      
-      if (!updatedTestSuite) {
-        return res.status(404).json({ error: "Test suite not found" });
-      }
       
       res.json(updatedTestSuite);
     } catch (error) {
       console.error("Error updating test suite:", error);
       res.status(400).json({ error: "Failed to update test suite" });
+    }
+  });
+
+  // Get test suite version history
+  app.get("/api/test-suites/:id/versions", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const versions = await db
+        .select()
+        .from(testSuiteVersions)
+        .where(eq(testSuiteVersions.test_suite_id, id))
+        .orderBy(desc(testSuiteVersions.revision));
+      
+      res.json(versions);
+    } catch (error) {
+      console.error("Error fetching test suite versions:", error);
+      res.status(500).json({ error: "Failed to fetch test suite versions" });
+    }
+  });
+
+  // Revert test suite to a specific version
+  app.post("/api/test-suites/:id/revert/:revision", async (req, res) => {
+    try {
+      const { id, revision } = req.params;
+      
+      // Get the version to revert to
+      const [targetVersion] = await db
+        .select()
+        .from(testSuiteVersions)
+        .where(
+          and(
+            eq(testSuiteVersions.test_suite_id, id),
+            eq(testSuiteVersions.revision, parseInt(revision))
+          )
+        );
+      
+      if (!targetVersion) {
+        return res.status(404).json({ error: "Version not found" });
+      }
+      
+      // Get current suite
+      const [currentSuite] = await db.select().from(testSuites).where(eq(testSuites.id, id));
+      if (!currentSuite) {
+        return res.status(404).json({ error: "Test suite not found" });
+      }
+      
+      // Create version history entry for the revert
+      await db.insert(testSuiteVersions).values({
+        test_suite_id: id,
+        revision: currentSuite.revision,
+        name: currentSuite.name,
+        description: currentSuite.description,
+        changes: JSON.stringify({ revert_to: targetVersion.revision }),
+        change_summary: `Revertido para revisão ${targetVersion.revision}`,
+        changed_by: "Demo User"
+      });
+      
+      // Update the test suite with the target version data
+      const [updatedTestSuite] = await db
+        .update(testSuites)
+        .set({
+          name: targetVersion.name,
+          description: targetVersion.description,
+          revision: currentSuite.revision + 1,
+          updated_at: new Date()
+        })
+        .where(eq(testSuites.id, id))
+        .returning();
+      
+      res.json(updatedTestSuite);
+    } catch (error) {
+      console.error("Error reverting test suite:", error);
+      res.status(500).json({ error: "Failed to revert test suite" });
     }
   });
 

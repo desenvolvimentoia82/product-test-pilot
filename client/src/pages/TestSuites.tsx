@@ -11,6 +11,7 @@ import { useTestCases } from '@/hooks/useTestCases';
 import { TestSuiteDialog } from '@/components/test-suites/TestSuiteDialog';
 import { TestCaseDialog } from '@/components/test-suites/TestCaseDialog';
 import { TestCasesViewDialog } from '@/components/test-suites/TestCasesViewDialog';
+import { TestSuiteVersionDialog } from '@/components/test-suites/TestSuiteVersionDialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export const TestSuites = () => {
@@ -262,10 +263,16 @@ const TestSuiteCard = ({ suite, onUpdate, onDelete, formatDate }: {
         <div className="mt-4 pt-4 border-t">
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <div>Criado em {formatDate(suite.created_at)}</div>
-            <div className="flex items-center space-x-2">
-              <History className="h-4 w-4" />
-              <span>Revisão {suite.revision || 1}</span>
-            </div>
+            <TestSuiteVersionDialog
+              suite={suite}
+              trigger={
+                <button className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors">
+                  <History className="h-4 w-4" />
+                  <span>Revisão {suite.revision || 1}</span>
+                </button>
+              }
+              onRevert={() => window.location.reload()}
+            />
           </div>
         </div>
       </CardContent>

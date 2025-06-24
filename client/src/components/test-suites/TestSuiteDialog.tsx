@@ -9,7 +9,7 @@ import { TestSuite } from '@/types/database';
 interface TestSuiteDialogProps {
   trigger: React.ReactNode;
   suite?: TestSuite;
-  onSave: (data: Omit<TestSuite, 'id' | 'created_at' | 'updated_at' | 'product_id'>) => void;
+  onSave: (data: Omit<TestSuite, 'id' | 'created_at' | 'updated_at' | 'product_id'> & { change_summary?: string }) => void;
 }
 
 export const TestSuiteDialog = ({ trigger, suite, onSave }: TestSuiteDialogProps) => {
@@ -17,6 +17,7 @@ export const TestSuiteDialog = ({ trigger, suite, onSave }: TestSuiteDialogProps
   const [formData, setFormData] = useState({
     name: suite?.name || '',
     description: suite?.description || '',
+    change_summary: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -24,7 +25,11 @@ export const TestSuiteDialog = ({ trigger, suite, onSave }: TestSuiteDialogProps
     onSave(formData);
     setOpen(false);
     if (!suite) {
-      setFormData({ name: '', description: '' });
+      setFormData({
+        name: '',
+        description: '',
+        change_summary: '',
+      });
     }
   };
 
@@ -63,6 +68,22 @@ export const TestSuiteDialog = ({ trigger, suite, onSave }: TestSuiteDialogProps
               rows={3}
             />
           </div>
+          
+          {suite && (
+            <div className="space-y-2">
+              <Label htmlFor="change_summary">Resumo das Alterações</Label>
+              <Input
+                id="change_summary"
+                value={formData.change_summary}
+                onChange={(e) => setFormData({ ...formData, change_summary: e.target.value })}
+                placeholder="Ex: Adicionado novos casos de teste, Corrigido descrição..."
+              />
+              <p className="text-xs text-muted-foreground">
+                Descreva brevemente as alterações feitas nesta versão (opcional)
+              </p>
+            </div>
+          )}
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancelar

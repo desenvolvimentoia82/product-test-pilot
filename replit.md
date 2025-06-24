@@ -40,6 +40,10 @@ A comprehensive test management system for organizing products, releases, and te
   - Added test cases view dialog for managing cases within suites
   - Implemented revision control system for test suites
   - Updated dashboard with real database statistics
+  - Implemented comprehensive test suite version control system
+  - Added test_suite_versions table with automatic change tracking
+  - Created version history dialog with revert functionality
+  - Enhanced test suite editing with change summary documentation
 
 ## User Preferences
 *To be updated based on user interactions*

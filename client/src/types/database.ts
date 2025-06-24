@@ -28,8 +28,21 @@ export interface TestSuite {
   product_id: string;
   name: string;
   description?: string;
+  revision?: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface TestSuiteVersion {
+  id: string;
+  test_suite_id: string;
+  revision: number;
+  name: string;
+  description?: string;
+  changes?: string;
+  change_summary?: string;
+  changed_by?: string;
+  created_at: string;
 }
 
 export interface ProductMember {
