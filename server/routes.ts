@@ -461,7 +461,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Test plans routes
-
+  app.get("/api/test-plans", async (req, res) => {
+    try {
+      const { product_id } = req.query;
+      let allTestPlans;
+      
+      if (product_id) {
+        allTestPlans = await db
+          .select()
+          .from(testPlans)
+          .where(eq(testPlans.product_id, product_id as string));
+      } else {
+        allTestPlans = await db.select().from(testPlans);
+      }
+      
+      res.json(allTestPlans);
+    } catch (error) {
+      console.error("Error fetching test plans:", error);
+      res.status(500).json({ error: "Failed to fetch test plans" });
+    }
+  });
 
   app.post("/api/test-plans", async (req, res) => {
     try {
