@@ -51,8 +51,8 @@ export const TestPlanDialog = ({ trigger, testPlan, onSave, productId, releases 
     const submitData = {
       ...formData,
       product_id: productId,
-      start_date: formData.start_date ? new Date(formData.start_date).toISOString() : undefined,
-      end_date: formData.end_date ? new Date(formData.end_date).toISOString() : undefined,
+      start_date: formData.start_date || null,
+      end_date: formData.end_date || null,
     };
     onSave(submitData);
     setOpen(false);
