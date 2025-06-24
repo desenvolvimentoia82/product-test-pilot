@@ -161,6 +161,8 @@ export const insertTestExecutionSchema = createInsertSchema(testExecutions).pick
   notes: true,
   attachments: true,
   execution_time: true,
+}).extend({
+  execution_date: z.string().transform((str) => new Date(str)),
 });
 
 // Types

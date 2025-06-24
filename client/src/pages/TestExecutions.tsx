@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui/page-header';
 import { ProductSelector } from '@/components/products/ProductSelector';
 import { Button } from '@/components/ui/button';
@@ -46,6 +46,15 @@ export const TestExecutions = () => {
   const [selectedPlanId, setSelectedPlanId] = useState<string>('');
   const { testPlans } = useTestPlans(selectedProduct?.id);
   const { testExecutions, loading, createTestExecution, updateTestExecution } = useTestExecutions(selectedPlanId);
+
+  // Check for plan ID in URL params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const planFromUrl = urlParams.get('plan');
+    if (planFromUrl && testPlans.some(p => p.id === planFromUrl)) {
+      setSelectedPlanId(planFromUrl);
+    }
+  }, [testPlans]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {

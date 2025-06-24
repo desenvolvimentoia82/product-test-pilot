@@ -137,7 +137,11 @@ export const TestPlans = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => window.location.href = `/test-executions?plan=${plan.id}`}
+                    >
                       <Play className="h-4 w-4 mr-2" />
                       Executar
                     </Button>
