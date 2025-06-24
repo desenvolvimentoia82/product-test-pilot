@@ -12,13 +12,16 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 const getStatusBadge = (status: string) => {
   const statusConfig = {
-    planning: { label: 'Planejamento', className: 'bg-blue-100 text-blue-800' },
-    active: { label: 'Ativo', className: 'bg-green-100 text-green-800' },
-    completed: { label: 'Concluído', className: 'bg-gray-100 text-gray-800' },
-    cancelled: { label: 'Cancelado', className: 'bg-red-100 text-red-800' },
+    nao_iniciada: { label: 'Não Iniciada', className: 'bg-gray-100 text-gray-800' },
+    em_andamento: { label: 'Em Andamento', className: 'bg-blue-100 text-blue-800' },
+    concluida: { label: 'Concluída', className: 'bg-green-100 text-green-800' },
+    interrompida: { label: 'Interrompida', className: 'bg-yellow-100 text-yellow-800' },
+    cancelada: { label: 'Cancelada', className: 'bg-red-100 text-red-800' },
+    aprovada: { label: 'Aprovada', className: 'bg-emerald-100 text-emerald-800' },
+    rejeitada: { label: 'Rejeitada', className: 'bg-red-100 text-red-800' },
   };
 
-  const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.planning;
+  const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.nao_iniciada;
   return <Badge variant="secondary" className={config.className}>{config.label}</Badge>;
 };
 

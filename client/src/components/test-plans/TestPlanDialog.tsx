@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TestPlan, Release } from '@/types/database';
+import { TestPlan, Release, TestSuite } from '@/types/database';
 
 interface TestPlanDialogProps {
   trigger: React.ReactNode;
@@ -17,14 +17,34 @@ interface TestPlanDialogProps {
 
 export const TestPlanDialog = ({ trigger, testPlan, onSave, productId, releases }: TestPlanDialogProps) => {
   const [open, setOpen] = useState(false);
+  const [testSuites, setTestSuites] = useState<TestSuite[]>([]);
   const [formData, setFormData] = useState({
     name: testPlan?.name || '',
     description: testPlan?.description || '',
     release_id: testPlan?.release_id || '',
+    test_suite_id: testPlan?.test_suite_id || '',
     start_date: testPlan?.start_date ? testPlan.start_date.split('T')[0] : '',
     end_date: testPlan?.end_date ? testPlan.end_date.split('T')[0] : '',
-    status: testPlan?.status || 'planning' as const,
+    status: testPlan?.status || 'nao_iniciada' as const,
   });
+
+  useEffect(() => {
+    const fetchTestSuites = async () => {
+      if (productId) {
+        try {
+          const response = await fetch(`/api/test-suites?product_id=${productId}`);
+          if (response.ok) {
+            const data = await response.json();
+            setTestSuites(data);
+          }
+        } catch (error) {
+          console.error('Error fetching test suites:', error);
+        }
+      }
+    };
+    
+    if (open) fetchTestSuites();
+  }, [open, productId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,9 +61,10 @@ export const TestPlanDialog = ({ trigger, testPlan, onSave, productId, releases 
         name: '',
         description: '',
         release_id: '',
+        test_suite_id: '',
         start_date: '',
         end_date: '',
-        status: 'planning',
+        status: 'nao_iniciada',
       });
     }
   };
@@ -59,7 +80,7 @@ export const TestPlanDialog = ({ trigger, testPlan, onSave, productId, releases 
             {testPlan ? 'Editar Plano de Teste' : 'Novo Plano de Teste'}
           </DialogTitle>
           <DialogDescription>
-            {testPlan ? 'Edite as informações do plano de teste.' : 'Crie um novo plano para organizar a execução dos testes.'}
+            {testPlan ? 'Edite as informações do plano de teste.' : 'Crie um novo plano associado a uma suite de teste para organizar a execução.'}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -84,6 +105,22 @@ export const TestPlanDialog = ({ trigger, testPlan, onSave, productId, releases 
                 {releases.map((release) => (
                   <SelectItem key={release.id} value={release.id}>
                     {release.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="test_suite_id">Suite de Teste</Label>
+            <Select value={formData.test_suite_id} onValueChange={(value) => setFormData({ ...formData, test_suite_id: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione uma suite de teste" />
+              </SelectTrigger>
+              <SelectContent>
+                {testSuites.map((suite) => (
+                  <SelectItem key={suite.id} value={suite.id}>
+                    {suite.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -119,10 +156,13 @@ export const TestPlanDialog = ({ trigger, testPlan, onSave, productId, releases 
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="planning">Planejamento</SelectItem>
-                <SelectItem value="active">Ativo</SelectItem>
-                <SelectItem value="completed">Concluído</SelectItem>
-                <SelectItem value="cancelled">Cancelado</SelectItem>
+                <SelectItem value="nao_iniciada">Não Iniciada</SelectItem>
+                <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                <SelectItem value="concluida">Concluída</SelectItem>
+                <SelectItem value="interrompida">Interrompida</SelectItem>
+                <SelectItem value="cancelada">Cancelada</SelectItem>
+                <SelectItem value="aprovada">Aprovada</SelectItem>
+                <SelectItem value="rejeitada">Rejeitada</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -142,7 +182,7 @@ export const TestPlanDialog = ({ trigger, testPlan, onSave, productId, releases 
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={!formData.release_id}>
+            <Button type="submit" disabled={!formData.release_id || !formData.test_suite_id}>
               {testPlan ? 'Salvar' : 'Criar'}
             </Button>
           </DialogFooter>
