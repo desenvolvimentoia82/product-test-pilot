@@ -1,45 +1,28 @@
 
-import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Product } from '@/types/database';
 import { useProduct } from '@/contexts/ProductContext';
+import { useProducts } from '@/hooks/useProducts';
 
 export const ProductSelector = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const { products, loading } = useProducts();
   const { selectedProduct, setSelectedProduct } = useProduct();
-
-  useEffect(() => {
-    // Simular carregamento de produtos
-    const mockProducts: Product[] = [
-      {
-        id: '1',
-        name: 'Sistema Web',
-        key: 'WEB',
-        description: 'Sistema principal da empresa',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-      {
-        id: '2',
-        name: 'App Mobile',
-        key: 'MOBILE',
-        description: 'Aplicativo mobile',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-    ];
-    setProducts(mockProducts);
-    
-    // Selecionar o primeiro produto automaticamente se não houver nenhum selecionado
-    if (!selectedProduct && mockProducts.length > 0) {
-      setSelectedProduct(mockProducts[0]);
-    }
-  }, [selectedProduct, setSelectedProduct]);
 
   const handleProductChange = (productId: string) => {
     const product = products.find(p => p.id === productId);
     setSelectedProduct(product || null);
   };
+
+  if (loading) {
+    return (
+      <div className="w-64">
+        <Select disabled>
+          <SelectTrigger>
+            <SelectValue placeholder="Carregando produtos..." />
+          </SelectTrigger>
+        </Select>
+      </div>
+    );
+  }
 
   return (
     <div className="w-64">

@@ -9,7 +9,109 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      product_members: {
+        Row: {
+          created_at: string | null
+          id: string
+          product_id: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          product_id?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          product_id?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_members_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          key: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      releases: {
+        Row: {
+          attachments: string[] | null
+          changelog: string | null
+          created_at: string | null
+          id: string
+          name: string
+          product_id: string | null
+          status: Database["public"]["Enums"]["release_status"] | null
+          test_environment: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          attachments?: string[] | null
+          changelog?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          product_id?: string | null
+          status?: Database["public"]["Enums"]["release_status"] | null
+          test_environment?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          attachments?: string[] | null
+          changelog?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          product_id?: string | null
+          status?: Database["public"]["Enums"]["release_status"] | null
+          test_environment?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "releases_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +120,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      release_status:
+        | "development"
+        | "ready_for_test"
+        | "testing"
+        | "approved"
+        | "released"
+      user_role: "admin" | "product_manager" | "tester" | "developer" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +241,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      release_status: [
+        "development",
+        "ready_for_test",
+        "testing",
+        "approved",
+        "released",
+      ],
+      user_role: ["admin", "product_manager", "tester", "developer", "viewer"],
+    },
   },
 } as const
