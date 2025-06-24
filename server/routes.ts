@@ -461,25 +461,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Test plans routes
-  app.get("/api/test-plans", async (req, res) => {
-    try {
-      const { product_id, release_id } = req.query;
-      let query = db.select().from(testPlans);
-      
-      if (product_id) {
-        query = query.where(eq(testPlans.product_id, product_id as string));
-      }
-      if (release_id) {
-        query = query.where(eq(testPlans.release_id, release_id as string));
-      }
-      
-      const allTestPlans = await query;
-      res.json(allTestPlans);
-    } catch (error) {
-      console.error("Error fetching test plans:", error);
-      res.status(500).json({ error: "Failed to fetch test plans" });
-    }
-  });
+
 
   app.post("/api/test-plans", async (req, res) => {
     try {
@@ -580,24 +562,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Test executions routes
+  // Legacy test executions route - return empty for backward compatibility
   app.get("/api/test-executions", async (req, res) => {
     try {
-      const { test_plan_id, test_case_id } = req.query;
-      let query = db.select().from(testExecutions);
-      
-      if (test_plan_id) {
-        query = query.where(eq(testExecutions.test_plan_id, test_plan_id as string));
-      }
-      if (test_case_id) {
-        query = query.where(eq(testExecutions.test_case_id, test_case_id as string));
-      }
-      
-      const allTestExecutions = await query;
-      res.json(allTestExecutions);
+      res.status(200).json([]);
     } catch (error) {
-      console.error("Error fetching test executions:", error);
-      res.status(500).json({ error: "Failed to fetch test executions" });
+      console.error("Error in legacy route:", error);
+      res.status(500).json({ error: "Legacy route error" });
     }
   });
 

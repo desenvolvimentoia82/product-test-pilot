@@ -2,19 +2,27 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { TestSuite } from '@/types/database';
 
-export const useTestSuites = (productId?: string) => {
+export const useTestSuites = (productId?: string, includeArchived: boolean = false) => {
   const [testSuites, setTestSuites] = useState<TestSuite[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const fetchTestSuites = async () => {
+    if (!productId) {
+      setTestSuites([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      let url = '/api/test-suites';
-      if (productId) url += `?product_id=${productId}`;
-      
-      const response = await fetch(url);
+      const queryParams = new URLSearchParams({
+        product_id: productId,
+        include_archived: includeArchived.toString()
+      });
+      const response = await fetch(`/api/test-suites?${queryParams}`);
       if (!response.ok) throw new Error('Failed to fetch test suites');
+      
       const data = await response.json();
       setTestSuites(data);
     } catch (error) {

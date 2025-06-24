@@ -175,7 +175,8 @@ export const insertTestSuiteSchema = createInsertSchema(testSuites).pick({
   name: true,
   description: true,
   revision: true,
-  status: true,
+}).extend({
+  status: z.enum(["active", "archived"]).optional(),
 });
 
 export const insertTestSuiteVersionSchema = createInsertSchema(testSuiteVersions).pick({
@@ -195,8 +196,9 @@ export const insertTestCaseSchema = createInsertSchema(testCases).pick({
   steps: true,
   expected_result: true,
   priority: true,
-  status: true,
   revision: true,
+}).extend({
+  status: z.enum(["active", "inactive", "deprecated"]).optional(),
 });
 
 export const insertTestCaseVersionSchema = createInsertSchema(testCaseVersions).pick({
@@ -221,7 +223,8 @@ export const insertTestPlanSchema = createInsertSchema(testPlans).pick({
   description: true,
   start_date: true,
   end_date: true,
-  status: true,
+}).extend({
+  status: z.enum(["nao_iniciada", "em_andamento", "concluida", "interrompida", "cancelada", "aprovada", "rejeitada"]).optional(),
 });
 
 export const insertTestPlanExecutionSchema = createInsertSchema(testPlanExecutions).pick({
@@ -237,13 +240,12 @@ export const insertTestPlanExecutionSchema = createInsertSchema(testPlanExecutio
 export const insertTestCaseExecutionSchema = createInsertSchema(testCaseExecutions).pick({
   test_plan_execution_id: true,
   test_case_id: true,
-  result: true,
   resultado: true,
-  execution_date: true,
   notes: true,
   attachments: true,
   execution_time: true,
 }).extend({
+  result: z.enum(["passou", "falhou", "bloqueado"]).optional(),
   execution_date: z.string().transform((str) => new Date(str)).optional(),
 });
 

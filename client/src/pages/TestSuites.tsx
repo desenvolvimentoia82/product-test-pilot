@@ -17,7 +17,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 export const TestSuites = () => {
   const { selectedProduct } = useProduct();
-  const { testSuites, loading, includeArchived, setIncludeArchived, createTestSuite, updateTestSuite, archiveTestSuite } = useTestSuites(selectedProduct?.id);
+  const [includeArchived, setIncludeArchived] = useState(false);
+  const { testSuites, loading, createTestSuite, updateTestSuite, archiveTestSuite } = useTestSuites(selectedProduct?.id, includeArchived);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -105,7 +106,7 @@ export const TestSuites = () => {
               key={suite.id}
               suite={suite}
               onUpdate={updateTestSuite}
-              onDelete={deleteTestSuite}
+              onArchive={archiveTestSuite}
               formatDate={formatDate}
             />
           ))}
@@ -115,10 +116,10 @@ export const TestSuites = () => {
   );
 };
 
-const TestSuiteCard = ({ suite, onUpdate, onDelete, formatDate }: {
+const TestSuiteCard = ({ suite, onUpdate, onArchive, formatDate }: {
   suite: any;
   onUpdate: (id: string, data: any) => void;
-  onDelete: (id: string) => void;
+  onArchive: (id: string) => void;
   formatDate: (date: string) => string;
 }) => {
   const { testCases, loading: casesLoading } = useTestCases(suite.id);
@@ -141,7 +142,12 @@ const TestSuiteCard = ({ suite, onUpdate, onDelete, formatDate }: {
           <div className="flex items-center space-x-3">
             <TestTube className="h-5 w-5 text-primary" />
             <div>
-              <CardTitle>{suite.name}</CardTitle>
+              <div className="flex items-center space-x-2">
+                <CardTitle>{suite.name}</CardTitle>
+                {suite.status === 'archived' && (
+                  <Badge variant="secondary">Arquivada</Badge>
+                )}
+              </div>
               <CardDescription className="mt-1">
                 {suite.description}
               </CardDescription>
