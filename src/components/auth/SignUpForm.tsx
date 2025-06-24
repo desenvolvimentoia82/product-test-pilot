@@ -33,18 +33,36 @@ export const SignUpForm = ({ onToggleMode }: SignUpFormProps) => {
       return;
     }
 
+    if (password.length < 6) {
+      toast({
+        title: "Erro",
+        description: "A senha deve ter pelo menos 6 caracteres.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await signUp(email, password, name);
-      toast({
-        title: "Sucesso!",
-        description: "Conta criada com sucesso.",
-      });
+      const { error } = await signUp(email, password, name);
+      
+      if (error) {
+        toast({
+          title: "Erro",
+          description: error.message || "Erro ao criar conta.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Sucesso!",
+          description: "Conta criada com sucesso. Verifique seu email para confirmar a conta.",
+        });
+      }
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Erro ao criar conta.",
+        description: "Erro inesperado. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -94,7 +112,7 @@ export const SignUpForm = ({ onToggleMode }: SignUpFormProps) => {
               <Input
                 id="password"
                 type="password"
-                placeholder="Sua senha"
+                placeholder="Sua senha (mínimo 6 caracteres)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

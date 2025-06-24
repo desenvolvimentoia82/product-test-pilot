@@ -1,13 +1,15 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User } from '@/types/database';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
-  signUp: (email: string, password: string, name: string) => Promise<void>;
+  signUp: (email: string, password: string, name: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,44 +24,37 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simular verificação de autenticação
-    const checkAuth = async () => {
-      try {
-        const savedUser = localStorage.getItem('auth_user');
-        if (savedUser) {
-          setUser(JSON.parse(savedUser));
-        }
-      } catch (error) {
-        console.error('Error checking auth:', error);
-      } finally {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
         setLoading(false);
       }
-    };
+    );
 
-    checkAuth();
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     try {
-      // Simular login - substituir por integração real com Supabase
-      const mockUser: User = {
-        id: '1',
-        name: 'Admin User',
-        email: email,
-        role: 'admin',
-        active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      
-      setUser(mockUser);
-      localStorage.setItem('auth_user', JSON.stringify(mockUser));
-    } catch (error) {
-      throw new Error('Falha na autenticação');
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      return { error };
     } finally {
       setLoading(false);
     }
@@ -68,33 +63,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, name: string) => {
     setLoading(true);
     try {
-      // Simular cadastro - substituir por integração real com Supabase
-      const mockUser: User = {
-        id: '1',
-        name: name,
-        email: email,
-        role: 'viewer',
-        active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
+      const redirectUrl = `${window.location.origin}/`;
       
-      setUser(mockUser);
-      localStorage.setItem('auth_user', JSON.stringify(mockUser));
-    } catch (error) {
-      throw new Error('Falha no cadastro');
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: name,
+          }
+        }
+      });
+      return { error };
     } finally {
       setLoading(false);
     }
   };
 
   const signOut = async () => {
-    setUser(null);
-    localStorage.removeItem('auth_user');
+    await supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signOut, signUp }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signOut, signUp }}>
       {children}
     </AuthContext.Provider>
   );

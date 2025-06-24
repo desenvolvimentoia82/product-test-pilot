@@ -24,15 +24,24 @@ export const LoginForm = ({ onToggleMode }: LoginFormProps) => {
     setLoading(true);
 
     try {
-      await signIn(email, password);
-      toast({
-        title: "Sucesso!",
-        description: "Login realizado com sucesso.",
-      });
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        toast({
+          title: "Erro",
+          description: error.message || "Credenciais inválidas.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Sucesso!",
+          description: "Login realizado com sucesso.",
+        });
+      }
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Credenciais inválidas.",
+        description: "Erro inesperado. Tente novamente.",
         variant: "destructive",
       });
     } finally {

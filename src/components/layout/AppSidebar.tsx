@@ -83,6 +83,10 @@ export function AppSidebar() {
     }
   };
 
+  const getUserDisplayName = () => {
+    return user?.user_metadata?.full_name || user?.email || 'Usuário';
+  };
+
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
@@ -119,28 +123,26 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {user?.role === 'admin' && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Administração</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {adminMenuItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton 
-                      asChild 
-                      isActive={location.pathname === item.url}
-                    >
-                      <Link to={item.url}>
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+        <SidebarGroup>
+          <SidebarGroupLabel>Administração</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {adminMenuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton 
+                    asChild 
+                    isActive={location.pathname === item.url}
+                  >
+                    <Link to={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="p-4">
@@ -149,8 +151,8 @@ export function AppSidebar() {
           <div className="flex items-center space-x-2 text-sm">
             <User className="h-4 w-4" />
             <div className="flex-1">
-              <p className="font-medium">{user?.name}</p>
-              <p className="text-xs text-muted-foreground">{user?.role}</p>
+              <p className="font-medium">{getUserDisplayName()}</p>
+              <p className="text-xs text-muted-foreground">{user?.email}</p>
             </div>
           </div>
           <div className="flex space-x-1">
