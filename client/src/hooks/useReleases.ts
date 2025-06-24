@@ -1,8 +1,6 @@
-
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Release } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
+import { Release } from '@/types/database';
 
 export const useReleases = (productId?: string) => {
   const [releases, setReleases] = useState<Release[]>([]);
@@ -10,26 +8,24 @@ export const useReleases = (productId?: string) => {
   const { toast } = useToast();
 
   const fetchReleases = async () => {
+    if (!productId) {
+      setReleases([]);
+      setLoading(false);
+      return;
+    }
+
     try {
-      let query = supabase
-        .from('releases')
-        .select('*, product:products(*)')
-        .order('created_at', { ascending: false });
-
-      if (productId) {
-        query = query.eq('product_id', productId);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      setReleases(data || []);
+      setLoading(true);
+      const response = await fetch(`/api/releases?product_id=${productId}`);
+      if (!response.ok) throw new Error('Failed to fetch releases');
+      const data = await response.json();
+      setReleases(data);
     } catch (error) {
       console.error('Error fetching releases:', error);
       toast({
-        title: 'Erro',
-        description: 'Não foi possível carregar as releases',
-        variant: 'destructive',
+        title: "Erro",
+        description: "Não foi possível carregar as releases.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -38,80 +34,90 @@ export const useReleases = (productId?: string) => {
 
   const createRelease = async (releaseData: Omit<Release, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      const { data, error } = await supabase
-        .from('releases')
-        .insert([releaseData])
-        .select('*, product:products(*)')
-        .single();
+      const response = await fetch('/api/releases', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(releaseData),
+      });
 
-      if (error) throw error;
-      
+      if (!response.ok) throw new Error('Failed to create release');
+      const data = await response.json();
+
       setReleases(prev => [data, ...prev]);
       toast({
-        title: 'Sucesso',
-        description: 'Release criada com sucesso',
+        title: "Sucesso",
+        description: "Release criada com sucesso.",
       });
+      
       return data;
     } catch (error) {
       console.error('Error creating release:', error);
       toast({
-        title: 'Erro',
-        description: 'Não foi possível criar a release',
-        variant: 'destructive',
+        title: "Erro",
+        description: "Não foi possível criar a release.",
+        variant: "destructive",
       });
-      return null;
+      throw error;
     }
   };
 
-  const updateRelease = async (id: string, updates: Partial<Release>) => {
+  const updateRelease = async (id: string, releaseData: Partial<Omit<Release, 'id' | 'created_at' | 'updated_at'>>) => {
     try {
-      const { data, error } = await supabase
-        .from('releases')
-        .update(updates)
-        .eq('id', id)
-        .select('*, product:products(*)')
-        .single();
-
-      if (error) throw error;
-      
-      setReleases(prev => prev.map(r => r.id === id ? data : r));
-      toast({
-        title: 'Sucesso',
-        description: 'Release atualizada com sucesso',
+      const response = await fetch(`/api/releases/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(releaseData),
       });
+
+      if (!response.ok) throw new Error('Failed to update release');
+      const data = await response.json();
+
+      setReleases(prev => prev.map(release => 
+        release.id === id ? data : release
+      ));
+      
+      toast({
+        title: "Sucesso",
+        description: "Release atualizada com sucesso.",
+      });
+      
       return data;
     } catch (error) {
       console.error('Error updating release:', error);
       toast({
-        title: 'Erro',
-        description: 'Não foi possível atualizar a release',
-        variant: 'destructive',
+        title: "Erro",
+        description: "Não foi possível atualizar a release.",
+        variant: "destructive",
       });
-      return null;
+      throw error;
     }
   };
 
   const deleteRelease = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('releases')
-        .delete()
-        .eq('id', id);
+      const response = await fetch(`/api/releases/${id}`, {
+        method: 'DELETE',
+      });
 
-      if (error) throw error;
-      
-      setReleases(prev => prev.filter(r => r.id !== id));
+      if (!response.ok) throw new Error('Failed to delete release');
+
+      setReleases(prev => prev.filter(release => release.id !== id));
       toast({
-        title: 'Sucesso',
-        description: 'Release removida com sucesso',
+        title: "Sucesso",
+        description: "Release excluída com sucesso.",
       });
     } catch (error) {
       console.error('Error deleting release:', error);
       toast({
-        title: 'Erro',
-        description: 'Não foi possível remover a release',
-        variant: 'destructive',
+        title: "Erro",
+        description: "Não foi possível excluir a release.",
+        variant: "destructive",
       });
+      throw error;
     }
   };
 

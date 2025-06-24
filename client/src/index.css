@@ -99,23 +99,23 @@
 
 @layer utilities {
   .test-status-passed {
-    @apply bg-test-passed/10 text-test-passed border-test-passed/20;
+    @apply bg-green-100 text-green-800 border-green-200;
   }
   
   .test-status-failed {
-    @apply bg-test-failed/10 text-test-failed border-test-failed/20;
+    @apply bg-red-100 text-red-800 border-red-200;
   }
   
   .test-status-pending {
-    @apply bg-test-pending/10 text-test-pending border-test-pending/20;
+    @apply bg-yellow-100 text-yellow-800 border-yellow-200;
   }
   
   .test-status-blocked {
-    @apply bg-test-blocked/10 text-test-blocked border-test-blocked/20;
+    @apply bg-gray-100 text-gray-800 border-gray-200;
   }
   
   .test-status-skipped {
-    @apply bg-test-skipped/10 text-test-skipped border-test-skipped/20;
+    @apply bg-blue-100 text-blue-800 border-blue-200;
   }
   
   .priority-low {

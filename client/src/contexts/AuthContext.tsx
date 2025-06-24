@@ -1,11 +1,13 @@
+import React, { createContext, useContext, useState } from 'react';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+interface User {
+  id: string;
+  email: string;
+  name: string;
+}
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -23,58 +25,24 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  const [user, setUser] = useState<User | null>({
+    id: '1',
+    email: 'demo@example.com',
+    name: 'Demo User'
+  });
+  const [loading, setLoading] = useState(false);
 
   const signIn = async (email: string, password: string) => {
-    setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      setLoading(true);
+      // For demo purposes, accept any credentials
+      setUser({
+        id: '1',
+        email: email,
+        name: 'Demo User'
       });
-      return { error };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signUp = async (email: string, password: string, name: string) => {
-    setLoading(true);
-    try {
-      const redirectUrl = `${window.location.origin}/`;
-      
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            full_name: name,
-          }
-        }
-      });
+      return { error: null };
+    } catch (error) {
       return { error };
     } finally {
       setLoading(false);
@@ -82,12 +50,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    setUser(null);
   };
 
-  return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signOut, signUp }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const signUp = async (email: string, password: string, name: string) => {
+    try {
+      setLoading(true);
+      // For demo purposes, create user immediately
+      setUser({
+        id: '1',
+        email: email,
+        name: name
+      });
+      return { error: null };
+    } catch (error) {
+      return { error };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const value = {
+    user,
+    loading,
+    signIn,
+    signOut,
+    signUp,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
