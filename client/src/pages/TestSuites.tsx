@@ -18,8 +18,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 export const TestSuites = () => {
   const { selectedProduct } = useProduct();
-  const [includeArchived, setIncludeArchived] = useState(false);
-  const { testSuites, loading, createTestSuite, updateTestSuite, archiveTestSuite, setIncludeArchived } = useTestSuites(selectedProduct?.id, includeArchived);
+  const { testSuites, loading, includeArchived, setIncludeArchived, createTestSuite, updateTestSuite, archiveTestSuite } = useTestSuites(selectedProduct?.id, false);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -56,6 +55,16 @@ export const TestSuites = () => {
         description="Organize seus casos de teste em suites por funcionalidade"
       >
         <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="include-archived"
+              checked={includeArchived}
+              onCheckedChange={(checked) => setIncludeArchived(!!checked)}
+            />
+            <label htmlFor="include-archived" className="text-sm">
+              Mostrar arquivadas
+            </label>
+          </div>
           <ProductSelector />
           {selectedProduct && (
             <TestSuiteDialog
