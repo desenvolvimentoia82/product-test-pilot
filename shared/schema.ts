@@ -221,9 +221,9 @@ export const insertTestPlanSchema = createInsertSchema(testPlans).pick({
   test_suite_id: true,
   name: true,
   description: true,
+  start_date: true,
+  end_date: true,
 }).extend({
-  start_date: z.union([z.string(), z.date()]).optional().nullable(),
-  end_date: z.union([z.string(), z.date()]).optional().nullable(),
   status: z.enum(["nao_iniciada", "em_andamento", "concluida", "interrompida", "cancelada", "aprovada", "rejeitada"]).optional(),
 });
 

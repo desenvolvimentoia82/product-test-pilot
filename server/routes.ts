@@ -467,21 +467,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertTestPlanSchema.parse(req.body);
       
+      // Transform date strings to Date objects or null
+      const processedData = {
+        ...validatedData,
+        start_date: validatedData.start_date && validatedData.start_date !== '' ? new Date(validatedData.start_date) : null,
+        end_date: validatedData.end_date && validatedData.end_date !== '' ? new Date(validatedData.end_date) : null,
+      };
+      
       // Verify that test suite exists and belongs to the same product
       const [testSuite] = await db
         .select()
         .from(testSuites)
-        .where(eq(testSuites.id, validatedData.test_suite_id));
+        .where(eq(testSuites.id, processedData.test_suite_id));
       
       if (!testSuite) {
         return res.status(400).json({ error: "Test suite not found" });
       }
       
-      if (testSuite.product_id !== validatedData.product_id) {
+      if (testSuite.product_id !== processedData.product_id) {
         return res.status(400).json({ error: "Test suite does not belong to the specified product" });
       }
       
-      const [newTestPlan] = await db.insert(testPlans).values(validatedData).returning();
+      const [newTestPlan] = await db.insert(testPlans).values(processedData).returning();
       res.status(201).json(newTestPlan);
     } catch (error) {
       console.error("Error creating test plan:", error);
@@ -493,9 +500,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const validatedData = insertTestPlanSchema.parse(req.body);
+      
+      // Transform date strings to Date objects or null
+      const processedData = {
+        ...validatedData,
+        start_date: validatedData.start_date && validatedData.start_date !== '' ? new Date(validatedData.start_date) : null,
+        end_date: validatedData.end_date && validatedData.end_date !== '' ? new Date(validatedData.end_date) : null,
+      };
       const [updatedTestPlan] = await db
         .update(testPlans)
-        .set({ ...validatedData, updated_at: new Date() })
+        .set({ ...processedData, updated_at: new Date() })
         .where(eq(testPlans.id, id))
         .returning();
       
