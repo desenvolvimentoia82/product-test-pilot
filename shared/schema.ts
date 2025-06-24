@@ -44,12 +44,63 @@ export const releases = pgTable("releases", {
   updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
-// Test suites table (adding this based on the frontend code)
+// Test suites table
 export const testSuites = pgTable("test_suites", {
   id: uuid("id").primaryKey().defaultRandom(),
   product_id: uuid("product_id").references(() => products.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   description: text("description"),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+// Test cases table
+export const testCases = pgTable("test_cases", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  test_suite_id: uuid("test_suite_id").references(() => testSuites.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  steps: text("steps"),
+  expected_result: text("expected_result"),
+  priority: text("priority").default("medium"), // low, medium, high, critical
+  status: text("status").default("active"), // active, inactive, deprecated
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+// Test plans table
+export const testPlans = pgTable("test_plans", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  product_id: uuid("product_id").references(() => products.id, { onDelete: "cascade" }),
+  release_id: uuid("release_id").references(() => releases.id, { onDelete: "cascade" }).notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  start_date: timestamp("start_date", { withTimezone: true }),
+  end_date: timestamp("end_date", { withTimezone: true }),
+  status: text("status").default("planning"), // planning, active, completed, cancelled
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+// Test plan suites (many-to-many relationship)
+export const testPlanSuites = pgTable("test_plan_suites", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  test_plan_id: uuid("test_plan_id").references(() => testPlans.id, { onDelete: "cascade" }),
+  test_suite_id: uuid("test_suite_id").references(() => testSuites.id, { onDelete: "cascade" }),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// Test executions table
+export const testExecutions = pgTable("test_executions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  test_plan_id: uuid("test_plan_id").references(() => testPlans.id, { onDelete: "cascade" }),
+  test_case_id: uuid("test_case_id").references(() => testCases.id, { onDelete: "cascade" }),
+  executor_name: text("executor_name").notNull(),
+  status: text("status").default("pending"), // pending, passed, failed, blocked, skipped
+  execution_date: timestamp("execution_date", { withTimezone: true }).defaultNow(),
+  notes: text("notes"),
+  attachments: text("attachments").array(),
+  execution_time: integer("execution_time"), // in minutes
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
@@ -81,6 +132,37 @@ export const insertTestSuiteSchema = createInsertSchema(testSuites).pick({
   description: true,
 });
 
+export const insertTestCaseSchema = createInsertSchema(testCases).pick({
+  test_suite_id: true,
+  title: true,
+  description: true,
+  steps: true,
+  expected_result: true,
+  priority: true,
+  status: true,
+});
+
+export const insertTestPlanSchema = createInsertSchema(testPlans).pick({
+  product_id: true,
+  release_id: true,
+  name: true,
+  description: true,
+  start_date: true,
+  end_date: true,
+  status: true,
+});
+
+export const insertTestExecutionSchema = createInsertSchema(testExecutions).pick({
+  test_plan_id: true,
+  test_case_id: true,
+  executor_name: true,
+  status: true,
+  execution_date: true,
+  notes: true,
+  attachments: true,
+  execution_time: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -90,6 +172,12 @@ export type Release = typeof releases.$inferSelect;
 export type InsertRelease = z.infer<typeof insertReleaseSchema>;
 export type TestSuite = typeof testSuites.$inferSelect;
 export type InsertTestSuite = z.infer<typeof insertTestSuiteSchema>;
+export type TestCase = typeof testCases.$inferSelect;
+export type InsertTestCase = z.infer<typeof insertTestCaseSchema>;
+export type TestPlan = typeof testPlans.$inferSelect;
+export type InsertTestPlan = z.infer<typeof insertTestPlanSchema>;
+export type TestExecution = typeof testExecutions.$inferSelect;
+export type InsertTestExecution = z.infer<typeof insertTestExecutionSchema>;
 export type ProductMember = typeof productMembers.$inferSelect;
 export type UserRole = typeof userRoleEnum.enumValues[number];
 export type ReleaseStatus = typeof releaseStatusEnum.enumValues[number];
