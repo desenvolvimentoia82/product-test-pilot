@@ -21,7 +21,7 @@ import {
   insertTestPlanExecutionSchema,
   insertTestCaseExecutionSchema
 } from "@shared/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -601,6 +601,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error removing test suite from plan:", error);
       res.status(500).json({ error: "Failed to remove test suite from plan" });
+    }
+  });
+
+  // Test plan executions routes
+  app.get("/api/test-plan-executions", async (req, res) => {
+    try {
+      const { test_plan_id } = req.query;
+      let query = db.select({
+        id: testPlanExecutions.id,
+        execution_number: testPlanExecutions.execution_number,
+        status: testPlanExecutions.status,
+        started_at: testPlanExecutions.started_at,
+        completed_at: testPlanExecutions.completed_at,
+        executor_name: testPlanExecutions.executor_name,
+        notes: testPlanExecutions.notes,
+        test_plan_id: testPlanExecutions.test_plan_id,
+        test_plan_name: testPlans.name,
+        created_at: testPlanExecutions.created_at,
+        updated_at: testPlanExecutions.updated_at,
+      }).from(testPlanExecutions)
+        .leftJoin(testPlans, eq(testPlanExecutions.test_plan_id, testPlans.id));
+
+      if (test_plan_id) {
+        query = query.where(eq(testPlanExecutions.test_plan_id, test_plan_id as string));
+      }
+
+      const executions = await query.orderBy(testPlanExecutions.created_at);
+      res.json(executions);
+    } catch (error) {
+      console.error("Error fetching test plan executions:", error);
+      res.status(500).json({ error: "Failed to fetch test plan executions" });
+    }
+  });
+
+  app.get("/api/test-plan-executions/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const [execution] = await db.select({
+        id: testPlanExecutions.id,
+        execution_number: testPlanExecutions.execution_number,
+        status: testPlanExecutions.status,
+        started_at: testPlanExecutions.started_at,
+        completed_at: testPlanExecutions.completed_at,
+        executor_name: testPlanExecutions.executor_name,
+        notes: testPlanExecutions.notes,
+        test_plan_id: testPlanExecutions.test_plan_id,
+        test_plan_name: testPlans.name,
+        test_suite_name: testSuites.name,
+        created_at: testPlanExecutions.created_at,
+        updated_at: testPlanExecutions.updated_at,
+      }).from(testPlanExecutions)
+        .leftJoin(testPlans, eq(testPlanExecutions.test_plan_id, testPlans.id))
+        .leftJoin(testSuites, eq(testPlans.test_suite_id, testSuites.id))
+        .where(eq(testPlanExecutions.id, id));
+
+      if (!execution) {
+        return res.status(404).json({ error: "Execution not found" });
+      }
+
+      res.json(execution);
+    } catch (error) {
+      console.error("Error fetching execution details:", error);
+      res.status(500).json({ error: "Failed to fetch execution details" });
+    }
+  });
+
+  app.post("/api/test-plan-executions", async (req, res) => {
+    try {
+      const validatedData = insertTestPlanExecutionSchema.parse(req.body);
+      
+      // Generate unique execution number
+      const year = new Date().getFullYear();
+      const count = await db.select().from(testPlanExecutions).where(sql`execution_number LIKE ${`EXEC-${year}-%`}`);
+      const executionNumber = `EXEC-${year}-${String(count.length + 1).padStart(4, '0')}`;
+
+      const [newExecution] = await db.insert(testPlanExecutions).values({
+        ...validatedData,
+        execution_number: executionNumber,
+        started_at: new Date(),
+        status: 'em_andamento',
+      }).returning();
+
+      res.status(201).json(newExecution);
+    } catch (error) {
+      console.error("Error creating test plan execution:", error);
+      res.status(400).json({ error: "Failed to create test plan execution" });
+    }
+  });
+
+  app.put("/api/test-plan-executions/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validatedData = insertTestPlanExecutionSchema.parse(req.body);
+      
+      const [updatedExecution] = await db
+        .update(testPlanExecutions)
+        .set({ ...validatedData, updated_at: new Date() })
+        .where(eq(testPlanExecutions.id, id))
+        .returning();
+
+      if (!updatedExecution) {
+        return res.status(404).json({ error: "Execution not found" });
+      }
+
+      res.json(updatedExecution);
+    } catch (error) {
+      console.error("Error updating test plan execution:", error);
+      res.status(400).json({ error: "Failed to update test plan execution" });
     }
   });
 

@@ -7,7 +7,9 @@ import { Plus, Calendar, Users, ClipboardList, Edit, Trash2, Play } from 'lucide
 import { useProduct } from '@/contexts/ProductContext';
 import { useTestPlans } from '@/hooks/useTestPlans';
 import { useReleases } from '@/hooks/useReleases';
+import { useTestPlanExecutions } from '@/hooks/useTestPlanExecutions';
 import { TestPlanDialog } from '@/components/test-plans/TestPlanDialog';
+import { TestPlanExecutionDialog } from '@/components/test-plans/TestPlanExecutionDialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 const getStatusBadge = (status: string) => {
@@ -29,6 +31,7 @@ export const TestPlans = () => {
   const { selectedProduct } = useProduct();
   const { testPlans, loading, createTestPlan, updateTestPlan, deleteTestPlan } = useTestPlans(selectedProduct?.id);
   const { releases } = useReleases(selectedProduct?.id);
+  const { startExecution } = useTestPlanExecutions();
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -140,14 +143,28 @@ export const TestPlans = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => window.location.href = `/test-executions?plan=${plan.id}`}
-                    >
-                      <Play className="h-4 w-4 mr-2" />
-                      Executar
-                    </Button>
+                    <TestPlanExecutionDialog
+                      testPlanId={plan.id}
+                      testPlanName={plan.name}
+                      trigger={
+                        <Button variant="outline" size="sm">
+                          <Play className="h-4 w-4 mr-2" />
+                          Executar
+                        </Button>
+                      }
+                      onStartExecution={async (data) => {
+                        try {
+                          const execution = await startExecution({
+                            test_plan_id: plan.id,
+                            executor_name: data.executor_name,
+                            notes: data.notes,
+                          });
+                          window.location.href = `/test-execution?id=${execution.id}`;
+                        } catch (error) {
+                          console.error('Error starting execution:', error);
+                        }
+                      }}
+                    />
                     <TestPlanDialog
                       testPlan={plan}
                       trigger={

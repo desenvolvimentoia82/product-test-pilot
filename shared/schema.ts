@@ -229,12 +229,12 @@ export const insertTestPlanSchema = createInsertSchema(testPlans).pick({
 
 export const insertTestPlanExecutionSchema = createInsertSchema(testPlanExecutions).pick({
   test_plan_id: true,
-  execution_number: true,
-  status: true,
-  started_at: true,
-  completed_at: true,
   executor_name: true,
   notes: true,
+}).extend({
+  status: z.enum(["nao_iniciada", "em_andamento", "concluida", "interrompida", "cancelada", "aprovada", "rejeitada"]).optional(),
+  started_at: z.union([z.string(), z.date()]).optional().nullable(),
+  completed_at: z.union([z.string(), z.date()]).optional().nullable(),
 });
 
 export const insertTestCaseExecutionSchema = createInsertSchema(testCaseExecutions).pick({

@@ -12,6 +12,7 @@ import { Products } from "@/pages/Products";
 import { TestSuites } from "@/pages/TestSuites";
 import { TestPlans } from "@/pages/TestPlans";
 import { TestExecutions } from "@/pages/TestExecutions";
+import { TestPlanExecution } from "@/pages/TestPlanExecution";
 import { Releases } from "@/pages/Releases";
 import NotFound from "./pages/NotFound";
 
@@ -32,6 +33,7 @@ const App = () => (
                 <Route path="/test-suites" element={<TestSuites />} />
                 <Route path="/test-plans" element={<TestPlans />} />
                 <Route path="/test-executions" element={<TestExecutions />} />
+                <Route path="/test-execution" element={<TestPlanExecution />} />
                 <Route path="/releases" element={<Releases />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
