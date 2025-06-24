@@ -4,7 +4,8 @@ import { ProductSelector } from '@/components/products/ProductSelector';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, TestTube, Clock, User, History, Edit, Trash2, PlayCircle, Eye } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, TestTube, Clock, User, History, Edit, Archive, PlayCircle, Eye } from 'lucide-react';
 import { useProduct } from '@/contexts/ProductContext';
 import { useTestSuites } from '@/hooks/useTestSuites';
 import { useTestCases } from '@/hooks/useTestCases';
@@ -16,7 +17,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 export const TestSuites = () => {
   const { selectedProduct } = useProduct();
-  const { testSuites, loading, createTestSuite, updateTestSuite, deleteTestSuite } = useTestSuites(selectedProduct?.id);
+  const { testSuites, loading, includeArchived, setIncludeArchived, createTestSuite, updateTestSuite, archiveTestSuite } = useTestSuites(selectedProduct?.id);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -156,27 +157,33 @@ const TestSuiteCard = ({ suite, onUpdate, onDelete, formatDate }: {
               }
               onSave={(data) => onUpdate(suite.id, data)}
             />
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Excluir Suite de Teste</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Esta ação não pode ser desfeita. Todos os casos de teste desta suite também serão excluídos.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => onDelete(suite.id)}>
-                    Excluir
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            {suite.status === 'active' ? (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Archive className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Arquivar Suite de Teste</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta suite será arquivada e ficará oculta por padrão, mas poderá ser visualizada novamente.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => onArchive(suite.id)}>
+                      Arquivar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            ) : (
+              <Badge variant="secondary" className="text-xs">
+                Arquivada
+              </Badge>
+            )}
           </div>
         </div>
       </CardHeader>

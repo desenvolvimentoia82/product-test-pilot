@@ -98,24 +98,28 @@ export const useTestSuites = (productId?: string) => {
     }
   };
 
-  const deleteTestSuite = async (id: string) => {
+  const archiveTestSuite = async (id: string) => {
     try {
-      const response = await fetch(`/api/test-suites/${id}`, {
-        method: 'DELETE',
+      const response = await fetch(`/api/test-suites/${id}/archive`, {
+        method: 'PUT',
       });
 
-      if (!response.ok) throw new Error('Failed to delete test suite');
+      if (!response.ok) throw new Error('Failed to archive test suite');
 
-      setTestSuites(prev => prev.filter(testSuite => testSuite.id !== id));
+      const data = await response.json();
+      setTestSuites(prev => prev.map(testSuite => 
+        testSuite.id === id ? data : testSuite
+      ));
+      
       toast({
         title: "Sucesso",
-        description: "Suite de teste excluída com sucesso.",
+        description: "Suite de teste arquivada com sucesso.",
       });
     } catch (error) {
-      console.error('Error deleting test suite:', error);
+      console.error('Error archiving test suite:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível excluir a suite de teste.",
+        description: "Não foi possível arquivar a suite de teste.",
         variant: "destructive",
       });
       throw error;
@@ -124,14 +128,16 @@ export const useTestSuites = (productId?: string) => {
 
   useEffect(() => {
     fetchTestSuites();
-  }, [productId]);
+  }, [productId, includeArchived]);
 
   return {
     testSuites,
     loading,
+    includeArchived,
+    setIncludeArchived,
     createTestSuite,
     updateTestSuite,
-    deleteTestSuite,
+    archiveTestSuite,
     refetch: fetchTestSuites,
   };
 };

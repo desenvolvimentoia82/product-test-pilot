@@ -1,22 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { TestPlan } from '@/types/database';
+import { useToast } from './use-toast';
 
-export const useTestPlans = (productId?: string, releaseId?: string) => {
-  const [testPlans, setTestPlans] = useState<TestPlan[]>([]);
-  const [loading, setLoading] = useState(true);
+export const useTestPlans = (productId?: string) => {
+  const [testPlans, setTestPlans] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const fetchTestPlans = async () => {
     try {
       setLoading(true);
       let url = '/api/test-plans';
-      const params = new URLSearchParams();
-      
-      if (productId) params.append('product_id', productId);
-      if (releaseId) params.append('release_id', releaseId);
-      
-      if (params.toString()) url += `?${params.toString()}`;
+      if (productId) url += `?product_id=${productId}`;
       
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch test plans');
@@ -34,52 +28,56 @@ export const useTestPlans = (productId?: string, releaseId?: string) => {
     }
   };
 
-  const createTestPlan = async (testPlanData: Omit<TestPlan, 'id' | 'created_at' | 'updated_at'>) => {
+  const createTestPlan = async (data: any) => {
     try {
       const response = await fetch('/api/test-plans', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(testPlanData),
+        body: JSON.stringify(data),
       });
 
-      if (!response.ok) throw new Error('Failed to create test plan');
-      const data = await response.json();
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create test plan');
+      }
 
-      setTestPlans(prev => [data, ...prev]);
+      const newTestPlan = await response.json();
+      setTestPlans(prev => [...prev, newTestPlan]);
+      
       toast({
         title: "Sucesso",
         description: "Plano de teste criado com sucesso.",
       });
       
-      return data;
+      return newTestPlan;
     } catch (error) {
       console.error('Error creating test plan:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível criar o plano de teste.",
+        description: error instanceof Error ? error.message : "Não foi possível criar o plano de teste.",
         variant: "destructive",
       });
       throw error;
     }
   };
 
-  const updateTestPlan = async (id: string, testPlanData: Partial<Omit<TestPlan, 'id' | 'created_at' | 'updated_at'>>) => {
+  const updateTestPlan = async (id: string, data: any) => {
     try {
       const response = await fetch(`/api/test-plans/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(testPlanData),
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) throw new Error('Failed to update test plan');
-      const data = await response.json();
 
-      setTestPlans(prev => prev.map(testPlan => 
-        testPlan.id === id ? data : testPlan
+      const updatedData = await response.json();
+      setTestPlans(prev => prev.map(plan => 
+        plan.id === id ? updatedData : plan
       ));
       
       toast({
@@ -87,7 +85,7 @@ export const useTestPlans = (productId?: string, releaseId?: string) => {
         description: "Plano de teste atualizado com sucesso.",
       });
       
-      return data;
+      return updatedData;
     } catch (error) {
       console.error('Error updating test plan:', error);
       toast({
@@ -107,7 +105,7 @@ export const useTestPlans = (productId?: string, releaseId?: string) => {
 
       if (!response.ok) throw new Error('Failed to delete test plan');
 
-      setTestPlans(prev => prev.filter(testPlan => testPlan.id !== id));
+      setTestPlans(prev => prev.filter(plan => plan.id !== id));
       toast({
         title: "Sucesso",
         description: "Plano de teste excluído com sucesso.",
@@ -124,8 +122,10 @@ export const useTestPlans = (productId?: string, releaseId?: string) => {
   };
 
   useEffect(() => {
-    fetchTestPlans();
-  }, [productId, releaseId]);
+    if (productId) {
+      fetchTestPlans();
+    }
+  }, [productId]);
 
   return {
     testPlans,

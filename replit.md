@@ -45,6 +45,19 @@ A comprehensive test management system for organizing products, releases, and te
   - Created version history dialog with revert functionality
   - Enhanced test suite editing with change summary documentation
 
+- **2024-12-24**: Major refactoring of test management system per user requirements
+  - Added revision control for test cases with version history
+  - Changed test suite deletion to archiving with status field
+  - Enhanced test suite filtering to hide archived by default
+  - Completely refactored test plans and executions structure
+  - Test plans now require direct association with test suites
+  - Implemented execution tracking with unique numbers (EXEC-YYYY-NNNN format)
+  - Added new status options: não_iniciada, em_andamento, concluída, interrompida, cancelada, aprovada, rejeitada
+  - Created test_plan_executions table for execution control
+  - Created test_case_executions table for individual test results
+  - Added mandatory fields: result (passou/falhou/bloqueado) and resultado (description)
+  - Implemented manual test case execution workflow
+
 ## User Preferences
 *To be updated based on user interactions*
 
