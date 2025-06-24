@@ -31,6 +31,11 @@ A comprehensive test management system for organizing products, releases, and te
   - Updated frontend hooks to use REST API instead of Supabase
   - Removed authentication complexity for simplified demo mode
   - Fixed CSS issues with test status classes
+  - Fixed duplicate "Planos de Teste" menu item in sidebar
+  - Fixed test case creation functionality in test suites
+  - Fixed test executions page routing and functionality
+  - Improved test execution dialog to fetch real test cases
+  - Updated execution URL from /executions to /test-executions
 
 ## User Preferences
 *To be updated based on user interactions*

@@ -53,16 +53,11 @@ const menuItems = [
   {
     title: "Planos de Teste",
     url: "/test-plans",
-    icon: TestTube,
-  },
-  {
-    title: "Planos de Teste",
-    url: "/test-plans",
     icon: ClipboardList,
   },
   {
     title: "Execuções",
-    url: "/executions",
+    url: "/test-executions",
     icon: PlayCircle,
   },
 ];

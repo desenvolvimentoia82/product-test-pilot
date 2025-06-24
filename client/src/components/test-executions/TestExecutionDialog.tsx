@@ -5,8 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TestExecution } from '@/types/database';
-import { useTestCases } from '@/hooks/useTestCases';
+import { TestExecution, TestCase } from '@/types/database';
 
 interface TestExecutionDialogProps {
   trigger: React.ReactNode;
@@ -17,6 +16,8 @@ interface TestExecutionDialogProps {
 
 export const TestExecutionDialog = ({ trigger, execution, onSave, planId }: TestExecutionDialogProps) => {
   const [open, setOpen] = useState(false);
+  const [testCases, setTestCases] = useState<TestCase[]>([]);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     test_case_id: execution?.test_case_id || '',
     executor_name: execution?.executor_name || 'Demo User',
@@ -26,13 +27,38 @@ export const TestExecutionDialog = ({ trigger, execution, onSave, planId }: Test
     execution_time: execution?.execution_time?.toString() || '',
   });
 
-  // For now, we'll use a simple mock for test cases since we need the test suite ID
-  // In a real implementation, you'd fetch test cases based on the test plan's associated suites
-  const mockTestCases = [
-    { id: '1', title: 'Teste de Login Básico' },
-    { id: '2', title: 'Teste de Logout' },
-    { id: '3', title: 'Teste de Recuperação de Senha' },
-  ];
+  // Fetch test cases when dialog opens
+  useEffect(() => {
+    if (open && planId) {
+      fetchTestCasesForPlan();
+    }
+  }, [open, planId]);
+
+  const fetchTestCasesForPlan = async () => {
+    try {
+      setLoading(true);
+      // First fetch all test suites for the product
+      const response = await fetch('/api/test-suites');
+      if (!response.ok) throw new Error('Failed to fetch test suites');
+      const testSuites = await response.json();
+      
+      // Fetch test cases for all suites
+      const allTestCases: TestCase[] = [];
+      for (const suite of testSuites) {
+        const casesResponse = await fetch(`/api/test-cases?test_suite_id=${suite.id}`);
+        if (casesResponse.ok) {
+          const cases = await casesResponse.json();
+          allTestCases.push(...cases);
+        }
+      }
+      setTestCases(allTestCases);
+    } catch (error) {
+      console.error('Error fetching test cases:', error);
+      setTestCases([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,11 +107,17 @@ export const TestExecutionDialog = ({ trigger, execution, onSave, planId }: Test
                 <SelectValue placeholder="Selecione um caso de teste" />
               </SelectTrigger>
               <SelectContent>
-                {mockTestCases.map((testCase) => (
-                  <SelectItem key={testCase.id} value={testCase.id}>
-                    {testCase.title}
-                  </SelectItem>
-                ))}
+                {loading ? (
+                  <SelectItem value="" disabled>Carregando casos de teste...</SelectItem>
+                ) : testCases.length === 0 ? (
+                  <SelectItem value="" disabled>Nenhum caso de teste encontrado</SelectItem>
+                ) : (
+                  testCases.map((testCase) => (
+                    <SelectItem key={testCase.id} value={testCase.id}>
+                      {testCase.title}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>

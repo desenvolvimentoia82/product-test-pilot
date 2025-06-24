@@ -219,9 +219,26 @@ const TestSuiteCard = ({ suite, onUpdate, onDelete, formatDate }: {
                     Caso
                   </Button>
                 }
-                onSave={(data) => {
-                  // This will be handled by the TestCaseDialog component
-                  console.log('Creating test case for suite:', suite.id, data);
+                onSave={async (data) => {
+                  try {
+                    const response = await fetch('/api/test-cases', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        ...data,
+                        test_suite_id: suite.id,
+                      }),
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to create test case');
+                    
+                    // Refresh the page to show the new test case
+                    window.location.reload();
+                  } catch (error) {
+                    console.error('Error creating test case:', error);
+                  }
                 }}
               />
               <Button variant="outline" size="sm">
